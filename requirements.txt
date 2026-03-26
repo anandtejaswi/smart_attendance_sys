@@ -1,0 +1,7 @@
+opencv-python
+dlib
+face_recognition
+PyQt6
+pandas
+cryptography
+psycopg2-binary
