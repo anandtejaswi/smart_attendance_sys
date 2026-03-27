@@ -59,3 +59,37 @@ class DBConnectionManager:
                 conn.close()
             except (sqlite3.Error, OperationalError) as e:
                 print(f"Error closing the database connection: {e}")
+
+    def create_tables(self):
+        """
+        Initializes the database schemas, including the Users table 
+        with specific constraints as mentioned in the SRSD.
+        Handles dialect differences for BLOB/BYTEA.
+        """
+        users_table_query = f"""
+        CREATE TABLE IF NOT EXISTS Users (
+            user_id VARCHAR(20) PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            dept VARCHAR(50) NOT NULL,
+            encoding {'BLOB' if self.db_type == 'sqlite' else 'BYTEA'} NOT NULL,
+            reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            pwd_hash VARCHAR(255) NOT NULL,
+            role VARCHAR(20) NOT NULL
+        );
+        """
+        
+        conn = None
+        try:
+            conn = self.get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute(users_table_query)
+            conn.commit()
+            print("Users table successfully created/verified.")
+            
+        except (sqlite3.Error, OperationalError) as e:
+            print(f"Error creating tables: {e}")
+        finally:
+            if conn:
+                cursor.close()
+                self.close_connection(conn)
