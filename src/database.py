@@ -78,14 +78,35 @@ class DBConnectionManager:
         );
         """
         
+        # Handle dialect-specific Auto-Increment for Attendance_Logs
+        if self.db_type == 'sqlite':
+            log_id_def = "log_id INTEGER PRIMARY KEY AUTOINCREMENT"
+        else:
+            log_id_def = "log_id BIGSERIAL PRIMARY KEY"
+            
+        attendance_logs_table_query = f"""
+        CREATE TABLE IF NOT EXISTS Attendance_Logs (
+            {log_id_def},
+            user_id VARCHAR(20) NOT NULL,
+            time_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+            confidence FLOAT CHECK (confidence >= 0 AND confidence <= 1),
+            FOREIGN KEY(user_id) REFERENCES Users(user_id)
+        );
+        """
+        
         conn = None
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
             
+            # Create Users table
             cursor.execute(users_table_query)
+            
+            # Create Attendance_Logs table
+            cursor.execute(attendance_logs_table_query)
+            
             conn.commit()
-            print("Users table successfully created/verified.")
+            print("Database schemas (Users, Attendance_Logs) successfully created/verified.")
             
         except (sqlite3.Error, OperationalError) as e:
             print(f"Error creating tables: {e}")
