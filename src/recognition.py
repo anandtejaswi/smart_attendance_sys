@@ -20,7 +20,10 @@ class RecognitionEngine:
         return faces
 
     def generate_encoding(self, frame):
-        return np.random.rand(128)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    resized = cv2.resize(gray, (16, 8))  # 128 values
+    encoding = resized.flatten() / 255.0
+    return encoding
 
     def compare_encoding(self, enc1, enc2):
         distance = np.linalg.norm(enc1 - enc2)
