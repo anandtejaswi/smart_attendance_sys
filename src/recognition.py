@@ -26,5 +26,5 @@ class RecognitionEngine:
     return encoding
 
     def compare_encoding(self, enc1, enc2):
-        distance = np.linalg.norm(enc1 - enc2)
-        return distance < 0.6
+    distance = np.linalg.norm(enc1 - enc2)
+    return distance, distance < 0.6
