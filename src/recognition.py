@@ -7,6 +7,8 @@ class RecognitionEngine:
         self.face_cascade = cv2.CascadeClassifier(
             cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
         )
+        self.last_user = None
+        self.frame_count = 0
 
     def detect_face(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -20,11 +22,24 @@ class RecognitionEngine:
         return faces
 
     def generate_encoding(self, frame):
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    resized = cv2.resize(gray, (16, 8))  # 128 values
-    encoding = resized.flatten() / 255.0
-    return encoding
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        resized = cv2.resize(gray, (16, 8))  # 128 values
+        encoding = resized.flatten() / 255.0
+        return encoding
 
     def compare_encoding(self, enc1, enc2):
-    distance = np.linalg.norm(enc1 - enc2)
-    return distance, distance < 0.6
+        distance = np.linalg.norm(enc1 - enc2)
+        return distance, distance < 0.6
+
+    def check_stability(self, current_user):
+        if self.last_user == current_user:
+            self.frame_count += 1
+        else:
+            self.last_user = current_user
+            self.frame_count = 1
+
+        if self.frame_count >= 3:
+            self.frame_count = 0
+            return True
+
+        return False
