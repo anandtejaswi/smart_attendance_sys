@@ -112,3 +112,31 @@ class DataManager:
                 self.db_manager.close_connection(conn)
                 
         return users
+
+    def log_attendance(self, user_id, confidence=1.0):
+        """
+        Commit 15: Automatically dispatch insertion query to Attendance_Logs.
+        Should be called by the application loop once the 3-frame stability threshold is met.
+        """
+        conn = None
+        try:
+            conn = self.db_manager.get_connection()
+            cursor = conn.cursor()
+            
+            if self.db_manager.db_type == "sqlite":
+                query = "INSERT INTO Attendance_Logs (user_id, confidence) VALUES (?, ?)"
+            else:
+                query = "INSERT INTO Attendance_Logs (user_id, confidence) VALUES (%s, %s)"
+                
+            cursor.execute(query, (user_id, confidence))
+            conn.commit()
+            return True
+        except (sqlite3.Error, OperationalError) as e:
+            print(f"Error logging attendance: {e}")
+            if conn:
+                conn.rollback()
+            return False
+        finally:
+            if conn:
+                cursor.close()
+                self.db_manager.close_connection(conn)
