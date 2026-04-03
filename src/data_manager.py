@@ -1,6 +1,7 @@
 import sqlite3
 import psycopg2
 import numpy as np
+import pandas as pd
 from psycopg2 import OperationalError
 from .database import DBConnectionManager
 
@@ -139,4 +140,71 @@ class DataManager:
         finally:
             if conn:
                 cursor.close()
+                self.db_manager.close_connection(conn)
+
+    def export_attendance_analytics(self, expected_sessions=1, export_dir="."):
+        """
+        Commit 16: Integrate Pandas for attendance analytics and data export.
+        Filters logs, identifies sub-75% attendance metrics against expected_sessions,
+        and provides one-click CSV and XLSX export conforming to ISO 8601 timestamps.
+        """
+        conn = None
+        try:
+            conn = self.db_manager.get_connection()
+            
+            # Extract main attendance string logic matching users with their timestamps
+            query = '''
+                SELECT 
+                    a.log_id,
+                    a.user_id,
+                    u.name,
+                    u.dept,
+                    a.time_in,
+                    a.confidence
+                FROM Attendance_Logs a
+                JOIN Users u ON a.user_id = u.user_id
+            '''
+            
+            # Leverage Pandas to directly fetch and parse SQL table
+            df = pd.read_sql_query(query, conn)
+            
+            if df.empty:
+                print("No attendance records found.")
+                return False
+                
+            # Commit 16 constraint: Ensure ISO 8601 formatting for exports
+            df['time_in'] = pd.to_datetime(df['time_in'])
+            df['iso_time_in'] = df['time_in'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+            
+            # Analytics: identifying sub-75% attendance metrics
+            # Group by user metadata and count frequency of attendance
+            analytics_df = df.groupby(['user_id', 'name', 'dept']).size().reset_index(name='sessions_attended')
+            
+            # Avoid division by zero
+            safe_sessions = expected_sessions if expected_sessions > 0 else 1
+            analytics_df['attendance_percent'] = (analytics_df['sessions_attended'] / safe_sessions) * 100
+            analytics_df['sub_75_flag'] = analytics_df['attendance_percent'] < 75.0
+            
+            # Export Raw Logs
+            raw_csv = f"{export_dir}/attendance_logs.csv"
+            raw_xlsx = f"{export_dir}/attendance_logs.xlsx"
+            
+            df.to_csv(raw_csv, index=False)
+            # engine requires openpyxl installed which is pip standard for pandas excel
+            df.to_excel(raw_xlsx, index=False, engine='openpyxl')
+            
+            # Export Filtered Analytics
+            analytics_csv = f"{export_dir}/attendance_analytics.csv"
+            analytics_xlsx = f"{export_dir}/attendance_analytics.xlsx"
+            
+            analytics_df.to_csv(analytics_csv, index=False)
+            analytics_df.to_excel(analytics_xlsx, index=False, engine='openpyxl')
+            
+            print(f"Successfully exported comprehensive attendance reports to {export_dir}")
+            return True
+        except Exception as e:
+            print(f"Error during Pandas export logic: {e}")
+            return False
+        finally:
+            if conn:
                 self.db_manager.close_connection(conn)
