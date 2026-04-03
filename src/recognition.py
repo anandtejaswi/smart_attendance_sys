@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import dlib
+import face_recognition
 
 class RecognitionEngine:
 
@@ -26,10 +27,19 @@ class RecognitionEngine:
         return bboxes
 
     def generate_encoding(self, frame):
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        resized = cv2.resize(gray, (16, 8))  # 128 values
-        encoding = resized.flatten() / 255.0
-        return encoding
+        # Convert OpenCV BGR format to RGB for face_recognition
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        # Extract the 128-dimensional floating-point encoding
+        encodings = face_recognition.face_encodings(rgb_frame)
+        
+        # Commit 11 constraint: forcefully purge raw image array from memory
+        del frame
+        del rgb_frame
+        
+        if len(encodings) > 0:
+            return encodings[0]
+        return None
 
     def compare_encoding(self, enc1, enc2):
         distance = np.linalg.norm(enc1 - enc2)
