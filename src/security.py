@@ -24,3 +24,17 @@ class AuthManager:
 
     def verify_password(self, input_password, stored_hash):
         return self.hash_password(input_password) == stored_hash
+
+
+class RBACManager:
+
+    def is_admin(self, role):
+        return role == "Admin"
+
+    def authorize(self, role, action):
+        admin_actions = ["register_user", "export_data"]
+
+        if action in admin_actions:
+            return role == "Admin"
+
+        return True
