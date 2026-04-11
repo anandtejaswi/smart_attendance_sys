@@ -1,31 +1,45 @@
 import cv2
 import numpy as np
+import dlib
+import face_recognition
 
 class RecognitionEngine:
 
     def __init__(self):
-        self.face_cascade = cv2.CascadeClassifier(
-            cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
-        )
+        # Dlib HOG algorithm for face detection
+        self.face_detector = dlib.get_frontal_face_detector()
         self.last_user = None
         self.frame_count = 0
 
     def detect_face(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        faces = self.face_cascade.detectMultiScale(
-            gray,
-            scaleFactor=1.3,
-            minNeighbors=5
-        )
+        faces = self.face_detector(gray, 1)
+        
+        bboxes = []
+        for face in faces:
+            x = face.left()
+            y = face.top()
+            w = face.width()
+            h = face.height()
+            bboxes.append((x, y, w, h))
 
-        return faces
+        return bboxes
 
     def generate_encoding(self, frame):
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        resized = cv2.resize(gray, (16, 8))  # 128 values
-        encoding = resized.flatten() / 255.0
-        return encoding
+        # Convert OpenCV BGR format to RGB for face_recognition
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        # Extract the 128-dimensional floating-point encoding
+        encodings = face_recognition.face_encodings(rgb_frame)
+        
+        # Commit 11 constraint: forcefully purge raw image array from memory
+        del frame
+        del rgb_frame
+        
+        if len(encodings) > 0:
+            return encodings[0]
+        return None
 
     def compare_encoding(self, enc1, enc2):
         distance = np.linalg.norm(enc1 - enc2)
