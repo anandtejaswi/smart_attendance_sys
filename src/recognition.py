@@ -45,7 +45,7 @@ class RecognitionEngine:
     def compare_encoding(self, enc1, enc2):
         distance = np.linalg.norm(enc1 - enc2)
         
-        # Enforcing user request: 85% match threshold
+        # Enforcing matching threshold
         is_match = distance <= 0.55
         return distance, is_match
 
@@ -60,4 +60,37 @@ class RecognitionEngine:
             self.frame_count = 0
             return True
 
+        return False
+
+    def calculate_ear(self, eye):
+        import math
+        # Calculate Euclidean distances between vertical eye landmarks
+        a = math.dist(eye[1], eye[5])
+        b = math.dist(eye[2], eye[4])
+        # Calculate Euclidean distance between horizontal eye landmarks
+        c = math.dist(eye[0], eye[3])
+        
+        if c == 0:
+            return 0.0
+            
+        ear = (a + b) / (2.0 * c)
+        return ear
+
+    def detect_blink(self, frame):
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        landmarks_list = face_recognition.face_landmarks(rgb_frame)
+        
+        if not landmarks_list:
+            return False
+
+        for face_landmark in landmarks_list:
+            if 'left_eye' in face_landmark and 'right_eye' in face_landmark:
+                left_ear = self.calculate_ear(face_landmark['left_eye'])
+                right_ear = self.calculate_ear(face_landmark['right_eye'])
+                
+                avg_ear = (left_ear + right_ear) / 2.0
+                
+                # A blink traditionally triggers below 0.22 depending on angle
+                if avg_ear < 0.22:
+                    return True
         return False

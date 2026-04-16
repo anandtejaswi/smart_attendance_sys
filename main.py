@@ -34,6 +34,7 @@ class SmartAttendanceApp:
         self.new_user_id = ""
         self.new_user_name = ""
         self.new_user_dept = ""
+        self.blink_verified = False
         
         self.current_filter_type = None
         self.current_filter_value = None
@@ -393,23 +394,39 @@ class SmartAttendanceApp:
 
                     if matched_uid:
                         if self.engine.check_stability(matched_uid):
-                            success = self.data_manager.log_attendance(matched_uid)
-                            if success:
-                                import datetime
-                                current_time = datetime.datetime.now().strftime("%I:%M %p")
-                                QMessageBox.information(
-                                    self.gui,
-                                    "Attendance Logged",
-                                    f"Your Attendance has been Logged at {current_time}\nUser ID: {matched_uid}"
-                                )
-                                self.gui.activity_log_attendance.setText("Waiting for detection...")
-                                self.engine.check_stability(None)
-                                self.go_home()
+                            
+                            # Blink Request Phase
+                            if not self.blink_verified:
+                                self.gui.activity_log_attendance.setStyleSheet("color: #0DCAF0; font-weight: bold; font-size: 16px;")
+                                self.gui.activity_log_attendance.setText(f"Face Stable (ID: {matched_uid}). Please BLINK to log attendance!")
+                                
+                                if self.engine.detect_blink(frame):
+                                    self.blink_verified = True
+                            
+                            # Logging Phase
+                            if self.blink_verified:
+                                success = self.data_manager.log_attendance(matched_uid)
+                                if success:
+                                    import datetime
+                                    current_time = datetime.datetime.now().strftime("%I:%M %p")
+                                    QMessageBox.information(
+                                        self.gui,
+                                        "Attendance Logged",
+                                        f"Liveness Confirmed! Attendance has been Logged at {current_time}\nUser ID: {matched_uid}"
+                                    )
+                                    self.gui.activity_log_attendance.setStyleSheet("color: #198754; font-weight: bold; font-size: 14px;")
+                                    self.gui.activity_log_attendance.setText("Waiting for detection...")
+                                    self.engine.check_stability(None)
+                                    self.blink_verified = False # Reset for next session
+                                    self.go_home()
                     else:
                         self.engine.check_stability(None)
+                        self.blink_verified = False
+                        self.gui.activity_log_attendance.setStyleSheet("color: #DC3545; font-weight: bold; font-size: 14px;")
                         self.gui.activity_log_attendance.setText("UNKNOWN FACE DETECTED")
         else:
             self.engine.check_stability(None)
+            self.blink_verified = False
             if self.gui.stacked_widget.currentIndex() == 1:
                 self.gui.activity_log_attendance.setText("Waiting for detection...")
 
