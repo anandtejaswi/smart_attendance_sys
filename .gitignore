@@ -50,3 +50,17 @@ Thumbs.db
 
 
 .venv
+
+# Databases
+*.db
+
+# Authentication and Secrets
+.admin_auth
+*.key
+
+# Log Exports
+*.csv
+*.xlsx
+
+# Machine Learning Models
+*.dat

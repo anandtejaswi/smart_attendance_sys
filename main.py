@@ -47,6 +47,7 @@ class SmartAttendanceApp:
         self.gui.reg_btn.clicked.connect(self.start_registration)
         self.gui.filter_btn.clicked.connect(self.prompt_filter)
         self.gui.clear_filter_btn.clicked.connect(self.clear_filter)
+        self.gui.export_btn.clicked.connect(self.export_data)
         self.gui.show_users_btn.clicked.connect(self.show_all_users_dialog)
         self.gui.analytics_btn.clicked.connect(self.show_analytics_dialog)
         self.gui.profile_btn.clicked.connect(self.show_profile_dialog)
@@ -137,6 +138,19 @@ class SmartAttendanceApp:
                         self.populate_analytics_table()
                     else:
                         QMessageBox.warning(self.gui, "Invalid Format", "Please use strict YYYY-MM-DD format.")
+
+    def export_data(self):
+        try:
+            import pandas as pd
+        except ImportError:
+            QMessageBox.warning(self.gui, "Dependency Error", "Pandas is required for exporting data.")
+            return
+
+        success = self.data_manager.export_attendance_analytics()
+        if success:
+            QMessageBox.information(self.gui, "Export Successful", "Attendance logs and analytics successfully exported to the root directory as CSV and XLSX files.")
+        else:
+            QMessageBox.warning(self.gui, "Export Failed", "There was an issue exporting the reports or there are no data records available.")
 
     def show_all_users_dialog(self):
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTableWidget, QHeaderView

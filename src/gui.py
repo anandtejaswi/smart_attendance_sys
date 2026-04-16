@@ -210,8 +210,12 @@ class SmartAttendanceGUI(QMainWindow):
         self.filter_btn.setStyleSheet("background-color: #0DCAF0; color: #000;")
         self.clear_filter_btn = QPushButton("Clear Filters")
         self.clear_filter_btn.setStyleSheet("background-color: #6C757D;")
+        self.export_btn = QPushButton("Export Reports")
+        self.export_btn.setStyleSheet("background-color: #28A745; color: white;")
+        
         filter_layout.addWidget(self.filter_btn)
         filter_layout.addWidget(self.clear_filter_btn)
+        filter_layout.addWidget(self.export_btn)
         filter_layout.addStretch()
         
         self.logs_table = QTableWidget(0, 4)
