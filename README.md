@@ -143,7 +143,9 @@ To use a production-tier remote PostgreSQL deployment instead of SQLite, structu
 ### Feature Flags & Customization Options
 Alongside DB networking, logic architectures can be customized inside the codebase constraints without risking core operations:
 - **Frame Validation Tracking Limits (Customization):** Modify the `FRAME_STABILITY_THRESHOLD` located within the `src/recognition.py` file to adjust how many consecutive frames an individual must be visibly detected before the system triggers an attendance log. The default rate is strictly `3` frames to establish optimal performance minimizing bounce tracking. 
-- **Distance Logic Parameters (Feature Tweak):** Altering the return parameters inside `compare_encoding()` allows administrators to control Euclidean "leniency" metrics (default `.06`)—tuning facial matching for environments with poor shadow projection angles.
+- **Distance Leniency/Matching Percentage (Feature Tweak):** Locate the `compare_encoding()` method inside `src/recognition.py`. The boolean calculation `is_match = distance <= 0.55` determines strictness.
+  - **Decreasing the threshold (e.g., `0.40`)**: Massively increases strictness (closer to a 100% mathematical match). This prevents all false-positives but might result in registered users failing to login if lighting conditions or facial angles shift slightly compared to their registration image.
+  - **Increasing the threshold (e.g., `0.60`)**: Enhances leniency (closer to a 40% mathematical match constraint). This allows employees to be recognized swiftly in poor lighting but heavily risks false-positive spoofing where unregistered people are erroneously logged under a registered name.
 
 ---
 
