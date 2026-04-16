@@ -7,6 +7,7 @@ An intelligent, computer vision-driven software application engineered to automa
 ## Key Features
 
 - **Real-Time Facial Recognition**: Utilizes Dlib's HOG-based face detectors to securely identify registered users from a live camera feed.
+- **Liveness Detection (Anti-Spoofing)**: Implements dynamic Eye Aspect Ratio (EAR) calculations tracing 68 facial points to mandate blinking, entirely eliminating static photo and mobile screen spoofing.
 - **Biometric Cryptography**: Secures all encoded facial arrays using Fernet symmetric AES encryption prior to database transit to prevent spoofing or identity theft.
 - **Interactive UI Dashboard**: Developed robustly on PyQt6 with designated, cleanly compartmentalized access boundaries for Standard Tracking and Administrative Analytics.
 - **Advanced Temporal Analytics**: Features calendar-heatmap data visualization, average daily arrival calculations, and precise metric aggregations parsing individual employee habits.
@@ -103,8 +104,9 @@ To enroll a new employee into the data banks, perform the following User-Flow wi
 To set the screen up for a lobby terminal or workstation gatekeeper:
 - **Step 1:** Make sure you are on the "Record Attendance" page (accessible via the Landing Page).
 - **Step 2:** Let an employee approach the terminal's camera scope. 
-- **Step 3:** The app waits dynamically for a consecutive 3-frame validation threshold (preventing spoof artifacts).
-- **System Output:** Upon validation, an immediate green pop-up emerges exclaiming **"Your Attendance has been Logged at [TIME]"** along with their exact User ID. The employee is released and the app resets seamlessly for the next individual!
+- **Step 3:** The app waits dynamically for a consecutive 3-frame validation threshold.
+- **Step 4 (Liveness Check):** The scanner halts and displays a blue prompt **"Face Stable... Please BLINK to log attendance!"**. The user must physically blink to trigger the secondary Euclidean EAR metric threshold (`< 0.22`).
+- **System Output:** Upon validation of the physical blink, an immediate green pop-up emerges exclaiming **"Liveness Confirmed! Attendance has been Logged at [TIME]"** along with their exact User ID. The employee is released and the app resets seamlessly for the next individual!
 
 ---
 
@@ -151,6 +153,7 @@ Alongside DB networking, logic architectures can be customized inside the codeba
 
 ## Security Considerations
 
+- **Liveness & Spoof Rejection**: Static image spoofing via smartphones or printed media is mathematically rejected. The system actively utilizes standard Dlib landmarks to calculate horizontal and vertical eyelid separation distances, verifying a human blink before accepting any attendance log.
 - **Encoding Isolation**: Only irreversible Euclidean 128-D Arrays are stored within databases; no raw user pictures exist on disk reducing GDPR compliance vectors entirely.
 - **Symmetric Fernet Protocol**: The encodings themselves are scrambled dynamically against complex, symmetric initialization keying mapped natively inside `src/security.py`.
 - **Administrative Bypass Logic**: The `Admin Password` overrides run outside formal SQL payloads explicitly restricting potential SQL injections directly attacking administrative panels.
