@@ -195,14 +195,21 @@ class SmartAttendanceGUI(QMainWindow):
         self.logs_table.setHorizontalHeaderLabels(["User ID", "Name", "Dept", "Time In"])
         self.logs_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
+        bottom_layout = QHBoxLayout()
+        self.profile_btn = QPushButton("Admin Profile")
+        self.profile_btn.setStyleSheet("background-color: #6C757D; color: white;")
         self.admin_back_btn = QPushButton("Logout to Home")
         self.admin_back_btn.setStyleSheet("background-color: #DC3545;")
+        
+        bottom_layout.addWidget(self.profile_btn)
+        bottom_layout.addStretch()
+        bottom_layout.addWidget(self.admin_back_btn)
         
         right_panel.addWidget(rtitle)
         right_panel.addLayout(users_layout)
         right_panel.addLayout(filter_layout)
         right_panel.addWidget(self.logs_table)
-        right_panel.addWidget(self.admin_back_btn, alignment=Qt.AlignmentFlag.AlignRight)
+        right_panel.addLayout(bottom_layout)
         
         layout.addLayout(left_panel, stretch=1)
         layout.addLayout(right_panel, stretch=2)

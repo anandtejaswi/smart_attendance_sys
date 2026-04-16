@@ -49,19 +49,35 @@ class SmartAttendanceApp:
         self.gui.clear_filter_btn.clicked.connect(self.clear_filter)
         self.gui.show_users_btn.clicked.connect(self.show_all_users_dialog)
         self.gui.analytics_btn.clicked.connect(self.show_analytics_dialog)
+        self.gui.profile_btn.clicked.connect(self.show_profile_dialog)
         
         self.gui.activity_log_attendance.setText("System Initializing: Camera Booting...")
 
+    def get_admin_password(self):
+        import os
+        pwd_file = ".admin_auth"
+        if os.path.exists(pwd_file):
+            with open(pwd_file, "r") as f:
+                return f.read().strip()
+        return "admin"
+        
+    def set_admin_password(self, new_pwd):
+        with open(".admin_auth", "w") as f:
+            f.write(new_pwd)
+
     def prompt_admin_login(self):
-        user_id, ok1 = QInputDialog.getText(self.gui, "Admin Login", "Enter User ID:")
+        user_id, ok1 = QInputDialog.getText(
+            self.gui, "Admin Login", "Enter Admin ID:")
         if ok1 and user_id == "admin":
-            password, ok2 = QInputDialog.getText(self.gui, "Admin Login", "Enter Password:", QLineEdit.EchoMode.Password)
-            if ok2 and password == "admin":
+            password, ok2 = QInputDialog.getText(
+                self.gui, "Admin Login", "Enter Admin Password:", QLineEdit.EchoMode.Password)
+            correct_pwd = self.get_admin_password()
+            if ok2 and password == correct_pwd:
                 self.start_admin_dashboard()
             else:
-                QMessageBox.warning(self.gui, "Login Failed", "Incorrect password.")
+                QMessageBox.warning(self.gui, "Login Failed", "Invalid Admin Password.")
         elif ok1:
-            QMessageBox.warning(self.gui, "Login Failed", "Incorrect User ID.")
+            QMessageBox.warning(self.gui, "Login Failed", "Invalid Admin ID.")
 
     def start_admin_dashboard(self):
         self.gui.stacked_widget.setCurrentIndex(2) # Admin
@@ -230,6 +246,48 @@ class SmartAttendanceApp:
         
         layout.addLayout(left_panel, stretch=2)
         layout.addLayout(right_panel, stretch=1)
+        
+        dialog.exec()
+
+    def show_profile_dialog(self):
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
+        dialog = QDialog(self.gui)
+        dialog.setWindowTitle("Admin Profile")
+        dialog.resize(300, 200)
+        
+        layout = QVBoxLayout(dialog)
+        layout.addWidget(QLabel("<b>Admin ID:</b> admin"))
+        
+        new_pwd_input = QLineEdit()
+        new_pwd_input.setEchoMode(QLineEdit.EchoMode.Password)
+        new_pwd_input.setPlaceholderText("Enter new password")
+        
+        confirm_pwd_input = QLineEdit()
+        confirm_pwd_input.setEchoMode(QLineEdit.EchoMode.Password)
+        confirm_pwd_input.setPlaceholderText("Confirm new password")
+        
+        save_btn = QPushButton("Change Password")
+        save_btn.setStyleSheet("background-color: #28A745; color: white;")
+        
+        def save_pwd():
+            pwd1 = new_pwd_input.text()
+            pwd2 = confirm_pwd_input.text()
+            if not pwd1:
+                QMessageBox.warning(dialog, "Error", "Password cannot be empty!")
+                return
+            if pwd1 != pwd2:
+                QMessageBox.warning(dialog, "Error", "Passwords do not match!")
+                return
+            self.set_admin_password(pwd1)
+            QMessageBox.information(dialog, "Success", "Admin password successfully updated!")
+            dialog.accept()
+            
+        save_btn.clicked.connect(save_pwd)
+        
+        layout.addWidget(QLabel("Change Password:"))
+        layout.addWidget(new_pwd_input)
+        layout.addWidget(confirm_pwd_input)
+        layout.addWidget(save_btn)
         
         dialog.exec()
 
