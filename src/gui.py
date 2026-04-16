@@ -168,6 +168,14 @@ class SmartAttendanceGUI(QMainWindow):
         self.total_users_lbl = QLabel("Total Registered Users: 0")
         self.total_users_lbl.setStyleSheet("font-size: 14px; font-weight: bold; color: #198754;")
         
+        self.show_users_btn = QPushButton("Show All Users")
+        self.show_users_btn.setStyleSheet("background-color: #6F42C1; color: white;")
+        
+        users_layout = QHBoxLayout()
+        users_layout.addWidget(self.total_users_lbl)
+        users_layout.addWidget(self.show_users_btn)
+        users_layout.addStretch()
+        
         filter_layout = QHBoxLayout()
         self.filter_btn = QPushButton("Filter Attendance Logs")
         self.filter_btn.setStyleSheet("background-color: #0DCAF0; color: #000;")
@@ -185,7 +193,7 @@ class SmartAttendanceGUI(QMainWindow):
         self.admin_back_btn.setStyleSheet("background-color: #DC3545;")
         
         right_panel.addWidget(rtitle)
-        right_panel.addWidget(self.total_users_lbl)
+        right_panel.addLayout(users_layout)
         right_panel.addLayout(filter_layout)
         right_panel.addWidget(self.logs_table)
         right_panel.addWidget(self.admin_back_btn, alignment=Qt.AlignmentFlag.AlignRight)

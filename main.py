@@ -46,6 +46,7 @@ class SmartAttendanceApp:
         self.gui.reg_btn.clicked.connect(self.start_registration)
         self.gui.filter_btn.clicked.connect(self.prompt_filter)
         self.gui.clear_filter_btn.clicked.connect(self.clear_filter)
+        self.gui.show_users_btn.clicked.connect(self.show_all_users_dialog)
         
         self.gui.activity_log_attendance.setText("System Initializing: Camera Booting...")
 
@@ -118,6 +119,29 @@ class SmartAttendanceApp:
                         self.populate_analytics_table()
                     else:
                         QMessageBox.warning(self.gui, "Invalid Format", "Please use strict YYYY-MM-DD format.")
+
+    def show_all_users_dialog(self):
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTableWidget, QHeaderView
+        dialog = QDialog(self.gui)
+        dialog.setWindowTitle("All Registered Users")
+        dialog.resize(600, 400)
+        
+        layout = QVBoxLayout(dialog)
+        users = self.data_manager.get_all_users()
+        
+        table = QTableWidget(len(users), 5)
+        table.setHorizontalHeaderLabels(["User ID", "Name", "Dept", "Reg Date", "Role"])
+        table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        
+        for i, user in enumerate(users):
+            table.setItem(i, 0, QTableWidgetItem(str(user["user_id"])))
+            table.setItem(i, 1, QTableWidgetItem(str(user["name"])))
+            table.setItem(i, 2, QTableWidgetItem(str(user["dept"])))
+            table.setItem(i, 3, QTableWidgetItem(str(user["reg_date"])))
+            table.setItem(i, 4, QTableWidgetItem(str(user["role"])))
+            
+        layout.addWidget(table)
+        dialog.exec()
 
     def start_registration(self):
         user_id = self.gui.user_id.text().strip()
