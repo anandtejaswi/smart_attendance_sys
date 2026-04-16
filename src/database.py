@@ -3,15 +3,17 @@ import sqlite3
 import psycopg2
 from psycopg2 import OperationalError
 
+
 class DBConnectionManager:
     """
     A scalable Database Connection Manager that supports both local SQLite
     and networked PostgreSQL deployments via environment variable configuration.
     """
+
     def __init__(self):
         # Database type: 'sqlite' or 'postgres'
         self.db_type = os.getenv("DB_TYPE", "sqlite").lower()
-        
+
         # Connection parameters
         self.db_name = os.getenv("DB_NAME", "sas_database.db")
         self.db_user = os.getenv("DB_USER", "postgres")
@@ -29,13 +31,13 @@ class DBConnectionManager:
             if self.db_type == "sqlite":
                 # db_name represents the sqlite file path
                 conn = sqlite3.connect(
-                    self.db_name, 
+                    self.db_name,
                     check_same_thread=False
                 )
                 # Setting row_factory provides dict-like access to rows
                 conn.row_factory = sqlite3.Row
                 return conn
-                
+
             elif self.db_type == "postgres":
                 conn = psycopg2.connect(
                     dbname=self.db_name,
@@ -45,12 +47,14 @@ class DBConnectionManager:
                     port=self.db_port
                 )
                 return conn
-                
+
             else:
                 raise ValueError(f"Unsupported DB_TYPE: '{self.db_type}'")
-                
+
         except (sqlite3.Error, OperationalError) as e:
-            raise ConnectionError(f"Failed to connect to {self.db_type} database: {e}")
+            raise ConnectionError(
+                f"Failed to connect to {
+                    self.db_type} database: {e}")
 
     def close_connection(self, conn):
         """Safely closes an active database connection."""
@@ -62,7 +66,7 @@ class DBConnectionManager:
 
     def create_tables(self):
         """
-        Initializes the database schemas, including the Users table 
+        Initializes the database schemas, including the Users table
         with specific constraints as mentioned in the SRSD.
         Handles dialect differences for BLOB/BYTEA.
         """
@@ -77,13 +81,13 @@ class DBConnectionManager:
             role VARCHAR(20) NOT NULL
         );
         """
-        
+
         # Handle dialect-specific Auto-Increment for Attendance_Logs
         if self.db_type == 'sqlite':
             log_id_def = "log_id INTEGER PRIMARY KEY AUTOINCREMENT"
         else:
             log_id_def = "log_id BIGSERIAL PRIMARY KEY"
-            
+
         attendance_logs_table_query = f"""
         CREATE TABLE IF NOT EXISTS Attendance_Logs (
             {log_id_def},
@@ -93,28 +97,29 @@ class DBConnectionManager:
             FOREIGN KEY(user_id) REFERENCES Users(user_id)
         );
         """
-        
+
         conn = None
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-            
+
             # Create Users table
             cursor.execute(users_table_query)
-            
+
             # Create Attendance_Logs table
             cursor.execute(attendance_logs_table_query)
-            
+
             conn.commit()
-            print("Database schemas (Users, Attendance_Logs) successfully created/verified.")
-            
+            print(
+                "Database schemas (Users, Attendance_Logs) successfully created/verified.")
+
         except (sqlite3.Error, OperationalError) as e:
             print(f"Error creating tables: {e}")
         finally:
             if conn:
                 cursor.close()
                 self.close_connection(conn)
-    
+
     def authenticate_user(self, user_id, input_password_hash):
         conn = self.get_connection()
         cursor = conn.cursor()

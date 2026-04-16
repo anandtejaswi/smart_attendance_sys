@@ -3,6 +3,7 @@ import numpy as np
 import dlib
 import face_recognition
 
+
 class RecognitionEngine:
 
     def __init__(self):
@@ -15,7 +16,7 @@ class RecognitionEngine:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         faces = self.face_detector(gray, 1)
-        
+
         bboxes = []
         for face in faces:
             x = face.left()
@@ -29,14 +30,14 @@ class RecognitionEngine:
     def generate_encoding(self, frame):
         # Convert OpenCV BGR format to RGB for face_recognition
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        
+
         # Extract the 128-dimensional floating-point encoding
         encodings = face_recognition.face_encodings(rgb_frame)
-        
+
         # Commit 11 constraint: forcefully purge raw image array from memory
         del frame
         del rgb_frame
-        
+
         if len(encodings) > 0:
             return encodings[0]
         return None

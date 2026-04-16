@@ -2,17 +2,18 @@ import cv2
 import threading
 import time
 
+
 class VideoCapture:
     def __init__(self, source=0):
         # Initialize the camera feed
         self.cap = cv2.VideoCapture(source)
-        
+
         # Set to standard 30 FPS as per Commit 7 requirements
         self.cap.set(cv2.CAP_PROP_FPS, 30)
-        
+
         self.frame = None
         self.running = True
-        
+
         # Commit 8: Start a background thread to prevent GUI freezing
         self.thread = threading.Thread(target=self._update, daemon=True)
         self.thread.start()
@@ -44,21 +45,22 @@ class VideoCapture:
         self.thread.join()
         self.cap.release()
 
+
 # --- LOCAL TEST BLOCK ---
 if __name__ == "__main__":
     camera = VideoCapture(0)
     print("Camera running. Press 'q' to exit.")
-    
+
     while True:
         # Test the downsampled version
         frame = camera.get_downsampled_frame()
-        
+
         if frame is not None:
             cv2.imshow('Phase 3: Threaded & Downsampled Feed', frame)
-        
+
         # Hit 'q' on the keyboard to stop
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
-            
+
     camera.release()
     cv2.destroyAllWindows()
