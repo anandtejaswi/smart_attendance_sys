@@ -64,11 +64,13 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 4. Bootstrapping
-Execute the initialization command. The ecosystem will natively parse configurations, construct the `Users` and `Attendance_Logs` SQLite registries automatically, and spin up PyQt6 widgets:
+### 4. Bootstrapping & Initial Admin Configuration
+Execute the initialization command to launch the system. The ecosystem will natively parse your configurations, instantly construct the `Users` and `Attendance_Logs` SQLite registries, and spin up the PyQt6 visualization widgets:
 ```bash
 python main.py
 ```
+> [!NOTE]
+> **Admin Credentials in Fresh Clones:** Because administrative configurations contain sensitive tracking profiles, the `.admin_auth` file is purposefully locked out of GitHub via `.gitignore`. Upon your very first boot of the application on a fresh system, your root Administrator credentials will automatically default to User ID: `admin` and Password: `admin`. You must login securely through the GUI to transition this state to a customized local profile.
 
 ---
 
@@ -83,8 +85,11 @@ Upon running `python main.py` for the first time, the `sas_database.db` structur
 To securely access system configurations:
 1. Click **"Login as Admin"**.
 2. A generic GUI prompt will ask for **Admin ID** and **Password**.
-   - *Default Credentials*: Both ID and Password are set to `admin` out of the box.
-3. Access is granted to the administrative suite. **(Note: It is strictly required that you click the circular 'A' profile icon at the top right to change this password immediately!)**
+   - *Default Credentials*: Since `.admin_auth` is tracked locally and not pushed to version control, both your ID and Password will fallback to `admin` on a fresh software clone.
+3. Access is granted to the administrative suite. 
+
+> [!IMPORTANT]
+> **Securing System Access:** It is strictly required that you immediately update this default password! To do so, simply click the generic **circular 'A' profile icon** located structurally at the extreme top right corner of the Admin Dashboard. Enter `admin` as your old password, type your new secure string, and hit save! This instantly creates your permanent, untracked `.admin_auth` file locally.
 
 ### 3. Step-by-Step Usage: Registering Users
 To enroll a new employee into the data banks, perform the following User-Flow within the Admin Dashboard:
