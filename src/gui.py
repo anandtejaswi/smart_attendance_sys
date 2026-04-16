@@ -164,8 +164,31 @@ class SmartAttendanceGUI(QMainWindow):
         left_panel.addWidget(reg_frame)
         
         right_panel = QVBoxLayout()
+        
+        header_layout = QHBoxLayout()
         rtitle = QLabel("Attendance Analytics")
         rtitle.setStyleSheet("font-size: 18px; font-weight: bold;")
+        
+        self.profile_btn = QPushButton("A")
+        self.profile_btn.setFixedSize(40, 40)
+        self.profile_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.profile_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #6C757D;
+                color: white;
+                border-radius: 20px;
+                font-weight: bold;
+                font-size: 18px;
+            }
+            QPushButton:hover {
+                background-color: #5A6268;
+            }
+        """)
+        self.profile_btn.setToolTip("Admin Profile")
+        
+        header_layout.addWidget(rtitle)
+        header_layout.addStretch()
+        header_layout.addWidget(self.profile_btn)
         
         self.total_users_lbl = QLabel("Total Registered Users: 0")
         self.total_users_lbl.setStyleSheet("font-size: 14px; font-weight: bold; color: #198754;")
@@ -196,16 +219,13 @@ class SmartAttendanceGUI(QMainWindow):
         self.logs_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
         bottom_layout = QHBoxLayout()
-        self.profile_btn = QPushButton("Admin Profile")
-        self.profile_btn.setStyleSheet("background-color: #6C757D; color: white;")
         self.admin_back_btn = QPushButton("Logout to Home")
         self.admin_back_btn.setStyleSheet("background-color: #DC3545;")
         
-        bottom_layout.addWidget(self.profile_btn)
         bottom_layout.addStretch()
         bottom_layout.addWidget(self.admin_back_btn)
         
-        right_panel.addWidget(rtitle)
+        right_panel.addLayout(header_layout)
         right_panel.addLayout(users_layout)
         right_panel.addLayout(filter_layout)
         right_panel.addWidget(self.logs_table)

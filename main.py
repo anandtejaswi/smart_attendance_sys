@@ -258,6 +258,10 @@ class SmartAttendanceApp:
         layout = QVBoxLayout(dialog)
         layout.addWidget(QLabel("<b>Admin ID:</b> admin"))
         
+        old_pwd_input = QLineEdit()
+        old_pwd_input.setEchoMode(QLineEdit.EchoMode.Password)
+        old_pwd_input.setPlaceholderText("Enter old password")
+        
         new_pwd_input = QLineEdit()
         new_pwd_input.setEchoMode(QLineEdit.EchoMode.Password)
         new_pwd_input.setPlaceholderText("Enter new password")
@@ -270,8 +274,12 @@ class SmartAttendanceApp:
         save_btn.setStyleSheet("background-color: #28A745; color: white;")
         
         def save_pwd():
+            old_pwd = old_pwd_input.text()
             pwd1 = new_pwd_input.text()
             pwd2 = confirm_pwd_input.text()
+            if old_pwd != self.get_admin_password():
+                QMessageBox.warning(dialog, "Error", "Incorrect old password!")
+                return
             if not pwd1:
                 QMessageBox.warning(dialog, "Error", "Password cannot be empty!")
                 return
@@ -285,6 +293,7 @@ class SmartAttendanceApp:
         save_btn.clicked.connect(save_pwd)
         
         layout.addWidget(QLabel("Change Password:"))
+        layout.addWidget(old_pwd_input)
         layout.addWidget(new_pwd_input)
         layout.addWidget(confirm_pwd_input)
         layout.addWidget(save_btn)
