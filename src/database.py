@@ -53,8 +53,8 @@ class DBConnectionManager:
 
         except (sqlite3.Error, OperationalError) as e:
             raise ConnectionError(
-                f"Failed to connect to {
-                    self.db_type} database: {e}")
+                f"Failed to connect to {self.db_type} database: {e}"
+            )
 
     def close_connection(self, conn):
         """Safely closes an active database connection."""
