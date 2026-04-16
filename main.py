@@ -382,13 +382,14 @@ class SmartAttendanceApp:
                         self.registration_encodings = []
                 elif self.gui.stacked_widget.currentIndex() == 1:
                     matched_uid = None
+                    best_match_dist = 1.0
 
                     for uid, saved_enc in self.known_encodings.items():
                         dist, is_match = self.engine.compare_encoding(
                             current_encoding, saved_enc)
-                        if is_match:
+                        if is_match and dist < best_match_dist:
+                            best_match_dist = dist
                             matched_uid = uid
-                            break
 
                     if matched_uid:
                         if self.engine.check_stability(matched_uid):

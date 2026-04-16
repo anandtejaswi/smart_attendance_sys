@@ -44,7 +44,10 @@ class RecognitionEngine:
 
     def compare_encoding(self, enc1, enc2):
         distance = np.linalg.norm(enc1 - enc2)
-        return distance, distance < 0.6
+        
+        # Enforcing user request: 85% match threshold
+        is_match = distance <= 0.55
+        return distance, is_match
 
     def check_stability(self, current_user):
         if self.last_user == current_user:
