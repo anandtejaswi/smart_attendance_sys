@@ -5,3 +5,4 @@ PyQt6
 pandas
 cryptography
 psycopg2-binary
+openpyxl
