@@ -64,3 +64,6 @@ Thumbs.db
 
 # Machine Learning Models
 *.dat
+
+# Temporary Lock Files
+.~lock.*
