@@ -228,7 +228,7 @@ class SmartAttendanceApp:
                                 QMessageBox.information(
                                     self.gui,
                                     "Attendance Logged",
-                                    f"Your Attendance has been Logged at {current_time}"
+                                    f"Your Attendance has been Logged at {current_time}\nUser ID: {matched_uid}"
                                 )
                                 self.gui.activity_log_attendance.setText("Waiting for detection...")
                                 self.engine.check_stability(None)
