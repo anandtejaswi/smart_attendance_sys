@@ -235,3 +235,89 @@ class DataManager:
         finally:
             if conn:
                 self.db_manager.close_connection(conn)
+
+    def get_total_users(self):
+        """Fetch the exact count of registered users from the Users table."""
+        conn = None
+        count = 0
+        try:
+            conn = self.db_manager.get_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM Users")
+            row = cursor.fetchone()
+            if self.db_manager.db_type == 'sqlite':
+                count = row[0] if row else 0
+            else:
+                count = row[0] if row else 0
+        except (sqlite3.Error, OperationalError) as e:
+            print(f"Error fetching total users: {e}")
+        finally:
+            if conn:
+                cursor.close()
+                self.db_manager.close_connection(conn)
+        return count
+
+    def get_filtered_logs(self, limit=50, filter_type=None, filter_value=None):
+        """Fetch attendance logs optionally filtered by user_id or date."""
+        conn = None
+        logs = []
+        try:
+            conn = self.db_manager.get_connection()
+            cursor = conn.cursor()
+
+            base_query = '''
+                SELECT
+                    u.user_id,
+                    u.name,
+                    u.dept,
+                    a.time_in
+                FROM Attendance_Logs a
+                JOIN Users u ON a.user_id = u.user_id
+            '''
+            
+            conditions = []
+            params = []
+            
+            if filter_type == "User ID" and filter_value:
+                conditions.append("u.user_id = ?") if self.db_manager.db_type == "sqlite" else conditions.append("u.user_id = %s")
+                params.append(filter_value)
+            elif filter_type == "Date" and filter_value:
+                # SQLite dates in timestamps look like '2023-10-25 14:22:11'
+                if self.db_manager.db_type == "sqlite":
+                    conditions.append("DATE(a.time_in) = ?")
+                else:
+                    conditions.append("DATE(a.time_in) = %s")
+                params.append(filter_value)
+                
+            if conditions:
+                base_query += " WHERE " + " AND ".join(conditions)
+
+            base_query += " ORDER BY a.time_in DESC "
+            
+            if self.db_manager.db_type == "sqlite":
+                base_query += " LIMIT ?"
+            else:
+                base_query += " LIMIT %s"
+            
+            params.append(limit)
+            
+            cursor.execute(base_query, tuple(params))
+            rows = cursor.fetchall()
+            
+            for row in rows:
+                if self.db_manager.db_type == "sqlite":
+                    logs.append(dict(row))
+                else:
+                    logs.append({
+                        "user_id": row[0],
+                        "name": row[1],
+                        "dept": row[2],
+                        "time_in": row[3]
+                    })
+        except (sqlite3.Error, OperationalError) as e:
+            print(f"Error retrieving filtered logs: {e}")
+        finally:
+            if conn:
+                cursor.close()
+                self.db_manager.close_connection(conn)
+        return logs
