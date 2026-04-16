@@ -33,6 +33,7 @@ class SmartAttendanceApp:
         self.registration_encodings = []
         self.new_user_id = ""
         self.new_user_name = ""
+        self.new_user_dept = ""
         
         self.current_filter_type = None
         self.current_filter_value = None
@@ -129,8 +130,8 @@ class SmartAttendanceApp:
         layout = QVBoxLayout(dialog)
         users = self.data_manager.get_all_users()
         
-        table = QTableWidget(len(users), 5)
-        table.setHorizontalHeaderLabels(["User ID", "Name", "Dept", "Reg Date", "Role"])
+        table = QTableWidget(len(users), 4)
+        table.setHorizontalHeaderLabels(["User ID", "Name", "Dept", "Reg Date"])
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
         for i, user in enumerate(users):
@@ -138,7 +139,6 @@ class SmartAttendanceApp:
             table.setItem(i, 1, QTableWidgetItem(str(user["name"])))
             table.setItem(i, 2, QTableWidgetItem(str(user["dept"])))
             table.setItem(i, 3, QTableWidgetItem(str(user["reg_date"])))
-            table.setItem(i, 4, QTableWidgetItem(str(user["role"])))
             
         layout.addWidget(table)
         dialog.exec()
@@ -146,9 +146,10 @@ class SmartAttendanceApp:
     def start_registration(self):
         user_id = self.gui.user_id.text().strip()
         user_name = self.gui.user_name.text().strip()
+        user_dept = self.gui.user_dept.text().strip()
         
-        if not user_id or not user_name:
-            self.gui.activity_log_reg.setText("ERROR: ID & Name required!")
+        if not user_id or not user_name or not user_dept:
+            self.gui.activity_log_reg.setText("ERROR: ID, Name, Dept required!")
             return
             
         if user_id in self.known_encodings:
@@ -159,6 +160,7 @@ class SmartAttendanceApp:
         self.registration_encodings = []
         self.new_user_id = user_id
         self.new_user_name = user_name
+        self.new_user_dept = user_dept
         self.gui.activity_log_reg.setText("RECORDING: Please look at camera...")
 
     def update_frame(self):
@@ -189,7 +191,7 @@ class SmartAttendanceApp:
                         success = self.data_manager.insert_user(
                             user_id=self.new_user_id,
                             name=self.new_user_name,
-                            dept="General",
+                            dept=self.new_user_dept,
                             encoding_array=avg_encoding,
                             pwd_hash=hashed_pwd,
                             role="User"
@@ -200,6 +202,7 @@ class SmartAttendanceApp:
                             self.gui.activity_log_reg.setText(f"SUCCESS: Enrolled {self.new_user_name}")
                             self.gui.user_id.clear()
                             self.gui.user_name.clear()
+                            self.gui.user_dept.clear()
                             self.populate_analytics_table()
                         else:
                             self.gui.activity_log_reg.setText("ERROR: DB Insertion Failed")

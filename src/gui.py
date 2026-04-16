@@ -146,6 +146,7 @@ class SmartAttendanceGUI(QMainWindow):
         reg_layout = QFormLayout(reg_frame)
         self.user_id = QLineEdit()
         self.user_name = QLineEdit()
+        self.user_dept = QLineEdit()
         self.reg_btn = QPushButton("Start 5-Sec Video Burst")
         self.activity_log_reg = QLabel("Ready for Registration.")
         self.activity_log_reg.setStyleSheet("color: #6C757D; margin-top: 10px;")
@@ -155,6 +156,7 @@ class SmartAttendanceGUI(QMainWindow):
         reg_layout.addRow(title_label)
         reg_layout.addRow("User ID:", self.user_id)
         reg_layout.addRow("Full Name:", self.user_name)
+        reg_layout.addRow("Department:", self.user_dept)
         reg_layout.addRow(self.reg_btn)
         reg_layout.addRow(self.activity_log_reg)
         
