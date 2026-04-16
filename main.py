@@ -48,6 +48,7 @@ class SmartAttendanceApp:
         self.gui.filter_btn.clicked.connect(self.prompt_filter)
         self.gui.clear_filter_btn.clicked.connect(self.clear_filter)
         self.gui.show_users_btn.clicked.connect(self.show_all_users_dialog)
+        self.gui.analytics_btn.clicked.connect(self.show_analytics_dialog)
         
         self.gui.activity_log_attendance.setText("System Initializing: Camera Booting...")
 
@@ -141,6 +142,95 @@ class SmartAttendanceApp:
             table.setItem(i, 3, QTableWidgetItem(str(user["reg_date"])))
             
         layout.addWidget(table)
+        dialog.exec()
+
+    def show_analytics_dialog(self):
+        user_id, ok = QInputDialog.getText(self.gui, "User Analytics", "Enter exact User ID:")
+        if not ok or not user_id.strip():
+            return
+            
+        user_id = user_id.strip()
+        calendar_logs = self.data_manager.get_user_calendar_logs(user_id)
+        
+        if not calendar_logs:
+            QMessageBox.information(self.gui, "No Data", f"No attendance logs found for '{user_id}'.")
+            return
+            
+        from PyQt6.QtWidgets import QDialog, QHBoxLayout, QVBoxLayout, QLabel, QCalendarWidget, QListWidget
+        from PyQt6.QtGui import QTextCharFormat, QColor, QFont
+        from PyQt6.QtCore import QDate
+        
+        dialog = QDialog(self.gui)
+        dialog.setWindowTitle(f"Analytics Graph: {user_id}")
+        dialog.resize(800, 500)
+        
+        layout = QHBoxLayout(dialog)
+        
+        distinct_days = len(calendar_logs.keys())
+        total_seconds = 0
+        from datetime import datetime
+        
+        for date_key, times in calendar_logs.items():
+            first_time = times[0]
+            try:
+                t_obj = datetime.strptime(first_time, "%H:%M:%S")
+                seconds = t_obj.hour * 3600 + t_obj.minute * 60 + t_obj.second
+                total_seconds += seconds
+            except:
+                pass
+                
+        avg_seconds = total_seconds / distinct_days if distinct_days > 0 else 0
+        avg_time = "N/A"
+        if avg_seconds > 0:
+            h = int(avg_seconds // 3600)
+            m = int((avg_seconds % 3600) // 60)
+            avg_time_obj = datetime.strptime(f"{h}:{m}:00", "%H:%M:%S")
+            avg_time = avg_time_obj.strftime("%I:%M %p")
+            
+        left_panel = QVBoxLayout()
+        stats_lbl = QLabel(f"<b>User:</b> {user_id}<br><br>"
+                           f"<b>Total Distinct Days Present:</b> {distinct_days}<br>"
+                           f"<b>Average Daily Arrival:</b> {avg_time}")
+        stats_lbl.setStyleSheet("font-size: 16px;")
+        
+        cal = QCalendarWidget()
+        cal.setGridVisible(True)
+        
+        fmt = QTextCharFormat()
+        fmt.setForeground(QColor("white"))
+        fmt.setBackground(QColor("#198754"))
+        fmt.setFontWeight(QFont.Weight.Bold)
+        
+        for date_str in calendar_logs.keys():
+            try:
+                qdate = QDate.fromString(date_str, "yyyy-MM-dd")
+                cal.setDateTextFormat(qdate, fmt)
+            except:
+                pass
+                
+        left_panel.addWidget(stats_lbl)
+        left_panel.addWidget(cal)
+        
+        right_panel = QVBoxLayout()
+        right_panel.addWidget(QLabel("<b>Log Times on Selected Date:</b>"))
+        list_widget = QListWidget()
+        right_panel.addWidget(list_widget)
+        
+        def on_date_clicked(qdate):
+            date_key = qdate.toString("yyyy-MM-dd")
+            list_widget.clear()
+            if date_key in calendar_logs:
+                for t in calendar_logs[date_key]:
+                    list_widget.addItem(t)
+            else:
+                list_widget.addItem("No logs found.")
+                
+        cal.clicked.connect(on_date_clicked)
+        on_date_clicked(cal.selectedDate())
+        
+        layout.addLayout(left_panel, stretch=2)
+        layout.addLayout(right_panel, stretch=1)
+        
         dialog.exec()
 
     def start_registration(self):

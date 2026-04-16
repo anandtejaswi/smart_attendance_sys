@@ -173,9 +173,13 @@ class SmartAttendanceGUI(QMainWindow):
         self.show_users_btn = QPushButton("Show All Users")
         self.show_users_btn.setStyleSheet("background-color: #6F42C1; color: white;")
         
+        self.analytics_btn = QPushButton("User Analytics Graphs")
+        self.analytics_btn.setStyleSheet("background-color: #FD7E14; color: white;")
+        
         users_layout = QHBoxLayout()
         users_layout.addWidget(self.total_users_lbl)
         users_layout.addWidget(self.show_users_btn)
+        users_layout.addWidget(self.analytics_btn)
         users_layout.addStretch()
         
         filter_layout = QHBoxLayout()

@@ -138,17 +138,20 @@ class DataManager:
         Commit 15: Automatically dispatch insertion query to Attendance_Logs.
         Should be called by the application loop once the 3-frame stability threshold is met.
         """
+        import datetime
+        current_local_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
         conn = None
         try:
             conn = self.db_manager.get_connection()
             cursor = conn.cursor()
 
             if self.db_manager.db_type == "sqlite":
-                query = "INSERT INTO Attendance_Logs (user_id, confidence) VALUES (?, ?)"
+                query = "INSERT INTO Attendance_Logs (user_id, confidence, time_in) VALUES (?, ?, ?)"
             else:
-                query = "INSERT INTO Attendance_Logs (user_id, confidence) VALUES (%s, %s)"
+                query = "INSERT INTO Attendance_Logs (user_id, confidence, time_in) VALUES (%s, %s, %s)"
 
-            cursor.execute(query, (user_id, confidence))
+            cursor.execute(query, (user_id, confidence, current_local_time))
             conn.commit()
             return True
         except (sqlite3.Error, OperationalError) as e:
@@ -321,3 +324,33 @@ class DataManager:
                 cursor.close()
                 self.db_manager.close_connection(conn)
         return logs
+
+    def get_user_calendar_logs(self, user_id):
+        """Fetch and group logs by date for a specific user to power analytics tools."""
+        conn = None
+        calendar_logs = {}
+        try:
+            conn = self.db_manager.get_connection()
+            cursor = conn.cursor()
+            
+            if self.db_manager.db_type == "sqlite":
+                cursor.execute("SELECT time_in FROM Attendance_Logs WHERE user_id = ? ORDER BY time_in ASC", (user_id,))
+            else:
+                cursor.execute("SELECT time_in FROM Attendance_Logs WHERE user_id = %s ORDER BY time_in ASC", (user_id,))
+            
+            rows = cursor.fetchall()
+            
+            for row in rows:
+                timestamp = str(row[0])
+                if " " in timestamp:
+                    date_part, time_part = timestamp.split(" ", 1)
+                    if date_part not in calendar_logs:
+                        calendar_logs[date_part] = []
+                    calendar_logs[date_part].append(time_part)
+        except (sqlite3.Error, OperationalError) as e:
+            print(f"Error retrieving calendar logs: {e}")
+        finally:
+            if conn:
+                cursor.close()
+                self.db_manager.close_connection(conn)
+        return calendar_logs
