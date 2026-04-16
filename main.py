@@ -33,7 +33,34 @@ class SmartAttendanceApp:
         self.timer.timeout.connect(self.update_frame)
         self.timer.start(30)
 
+        # Registration state
+        self.is_registering = False
+        self.registration_encodings = []
+        self.new_user_id = ""
+        self.new_user_name = ""
+
+        # Connect registration button
+        self.gui.reg_btn.clicked.connect(self.start_registration)
+
         self.gui.activity_log.setText("System Initializing: Camera Booting...")
+
+    def start_registration(self):
+        user_id = self.gui.user_id.text().strip()
+        user_name = self.gui.user_name.text().strip()
+        
+        if not user_id or not user_name:
+            self.gui.activity_log.setText("ERROR: ID & Name required!")
+            return
+            
+        if user_id in self.known_encodings:
+            self.gui.activity_log.setText("ERROR: User ID already exists!")
+            return
+
+        self.is_registering = True
+        self.registration_encodings = []
+        self.new_user_id = user_id
+        self.new_user_name = user_name
+        self.gui.activity_log.setText("RECORDING: Please look at camera...")
 
     def update_frame(self):
         frame = self.camera.get_downsampled_frame()
@@ -50,26 +77,59 @@ class SmartAttendanceApp:
         if len(bboxes) > 0:
             current_encoding = self.engine.generate_encoding(frame)
             if current_encoding is not None:
-                matched_uid = None
-
-                # Check against known encodings
-                for uid, saved_enc in self.known_encodings.items():
-                    dist, is_match = self.engine.compare_encoding(
-                        current_encoding, saved_enc)
-                    if is_match:
-                        matched_uid = uid
-                        break
-
-                if matched_uid:
-                    # Stabilize to avoid false positives in blink-frames
-                    if self.engine.check_stability(matched_uid):
-                        success = self.data_manager.log_attendance(matched_uid)
+                # Registration mode overrides normal check
+                if self.is_registering:
+                    self.registration_encodings.append(current_encoding)
+                    self.gui.activity_log.setText(f"RECORDING: {len(self.registration_encodings)}/10 frames...")
+                    
+                    if len(self.registration_encodings) >= 10:
+                        import numpy as np
+                        from src.security import AuthManager
+                        
+                        avg_encoding = np.mean(self.registration_encodings, axis=0)
+                        auth_manager = AuthManager()
+                        hashed_pwd = auth_manager.hash_password("default_password")
+                        
+                        success = self.data_manager.insert_user(
+                            user_id=self.new_user_id,
+                            name=self.new_user_name,
+                            dept="General",
+                            encoding_array=avg_encoding,
+                            pwd_hash=hashed_pwd,
+                            role="User"
+                        )
+                        
                         if success:
-                            self.gui.activity_log.setText(
-                                f"SUCCESS: Logged {matched_uid}")
+                            self.known_encodings[self.new_user_id] = avg_encoding
+                            self.gui.activity_log.setText(f"SUCCESS: Enrolled {self.new_user_name}")
+                            self.gui.user_id.clear()
+                            self.gui.user_name.clear()
+                        else:
+                            self.gui.activity_log.setText("ERROR: DB Insertion Failed")
+                            
+                        self.is_registering = False
+                        self.registration_encodings = []
                 else:
-                    self.engine.check_stability(None)
-                    self.gui.activity_log.setText("UNKNOWN FACE DETECTED")
+                    matched_uid = None
+
+                    # Check against known encodings
+                    for uid, saved_enc in self.known_encodings.items():
+                        dist, is_match = self.engine.compare_encoding(
+                            current_encoding, saved_enc)
+                        if is_match:
+                            matched_uid = uid
+                            break
+
+                    if matched_uid:
+                        # Stabilize to avoid false positives in blink-frames
+                        if self.engine.check_stability(matched_uid):
+                            success = self.data_manager.log_attendance(matched_uid)
+                            if success:
+                                self.gui.activity_log.setText(
+                                    f"SUCCESS: Logged {matched_uid}")
+                    else:
+                        self.engine.check_stability(None)
+                        self.gui.activity_log.setText("UNKNOWN FACE DETECTED")
         else:
             self.engine.check_stability(None)
             self.gui.activity_log.setText("Waiting for detection...")
