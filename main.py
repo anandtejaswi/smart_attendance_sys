@@ -14,7 +14,17 @@ from src.data_manager import DataManager
 warnings.filterwarnings("ignore")
 
 class SmartAttendanceApp:
+    """
+    Main application class for the Smart Attendance System.
+    It integrates the GUI, database, camera hardware, and facial recognition engine,
+    acting as the central controller for the entire application.
+    """
     def __init__(self):
+        """
+        Initializes all application components, establishes database connections, 
+        starts the camera feed, sets up the recognition engine, configures a continuous 
+        timer for frame processing, and connects GUI buttons to their respective actions.
+        """
         self.app = QApplication(sys.argv)
         self.gui = SmartAttendanceGUI()
 
@@ -56,6 +66,10 @@ class SmartAttendanceApp:
         self.gui.activity_log_attendance.setText("System Initializing: Camera Booting...")
 
     def get_admin_password(self):
+        """
+        Retrieves the admin password from a local file '.admin_auth'.
+        Defaults to 'admin' if the file does not exist.
+        """
         import os
         pwd_file = ".admin_auth"
         if os.path.exists(pwd_file):
@@ -64,10 +78,17 @@ class SmartAttendanceApp:
         return "admin"
         
     def set_admin_password(self, new_pwd):
+        """
+        Saves a new admin password to the local '.admin_auth' file.
+        """
         with open(".admin_auth", "w") as f:
             f.write(new_pwd)
 
     def prompt_admin_login(self):
+        """
+        Opens dialog boxes to prompt the user for Admin ID and Password.
+        If credentials are correct, switches to the Admin Dashboard.
+        """
         user_id, ok1 = QInputDialog.getText(
             self.gui, "Admin Login", "Enter Admin ID:")
         if ok1 and user_id == "admin":
@@ -82,16 +103,29 @@ class SmartAttendanceApp:
             QMessageBox.warning(self.gui, "Login Failed", "Invalid Admin ID.")
 
     def start_admin_dashboard(self):
+        """
+        Switches the GUI view to the Admin Dashboard and populates data tables.
+        """
         self.gui.stacked_widget.setCurrentIndex(2) # Admin
         self.populate_analytics_table()
 
     def start_attendance_tracking(self):
+        """
+        Switches the GUI view to the Attendance Tracking mode.
+        """
         self.gui.stacked_widget.setCurrentIndex(1) # Attendance
 
     def go_home(self):
+        """
+        Switches the GUI view back to the Landing Page.
+        """
         self.gui.stacked_widget.setCurrentIndex(0) # Landing
 
     def populate_analytics_table(self):
+        """
+        Fetches attendance logs from the database and populates the logs table 
+        in the Admin Dashboard, applying any active filters.
+        """
         logs = self.data_manager.get_filtered_logs(
             limit=50, 
             filter_type=self.current_filter_type, 
@@ -114,6 +148,10 @@ class SmartAttendanceApp:
         self.populate_analytics_table()
 
     def prompt_filter(self):
+        """
+        Prompts the admin to filter attendance logs by either User ID or Date.
+        Updates the current filter state and refreshes the table.
+        """
         filter_type, ok = QInputDialog.getItem(
             self.gui, 
             "Filter Attendance Logs", 
@@ -141,6 +179,10 @@ class SmartAttendanceApp:
                         QMessageBox.warning(self.gui, "Invalid Format", "Please use strict YYYY-MM-DD format.")
 
     def export_data(self):
+        """
+        Exports attendance logs and analytics to CSV and Excel files 
+        using the DataManager.
+        """
         try:
             import pandas as pd
         except ImportError:
@@ -154,6 +196,10 @@ class SmartAttendanceApp:
             QMessageBox.warning(self.gui, "Export Failed", "There was an issue exporting the reports or there are no data records available.")
 
     def show_all_users_dialog(self):
+        """
+        Displays a dialog box containing a table of all registered users 
+        in the database.
+        """
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTableWidget, QHeaderView
         dialog = QDialog(self.gui)
         dialog.setWindowTitle("All Registered Users")
@@ -176,6 +222,10 @@ class SmartAttendanceApp:
         dialog.exec()
 
     def show_analytics_dialog(self):
+        """
+        Prompts for a User ID and displays a custom analytics dialog showing 
+        a calendar with active attendance days and logs for selected dates.
+        """
         user_id, ok = QInputDialog.getText(self.gui, "User Analytics", "Enter exact User ID:")
         if not ok or not user_id.strip():
             return
@@ -265,6 +315,9 @@ class SmartAttendanceApp:
         dialog.exec()
 
     def show_profile_dialog(self):
+        """
+        Displays the Admin Profile dialog allowing the admin to change their password.
+        """
         from PyQt6.QtWidgets import QDialog, QVBoxLayout, QLabel, QPushButton
         dialog = QDialog(self.gui)
         dialog.setWindowTitle("Admin Profile")
@@ -316,6 +369,10 @@ class SmartAttendanceApp:
         dialog.exec()
 
     def start_registration(self):
+        """
+        Validates inputs and initiates the facial registration process for a new user.
+        Sets the application state to 'registering' so the camera loop captures faces.
+        """
         user_id = self.gui.user_id.text().strip()
         user_name = self.gui.user_name.text().strip()
         user_dept = self.gui.user_dept.text().strip()
@@ -336,6 +393,12 @@ class SmartAttendanceApp:
         self.gui.activity_log_reg.setText("RECORDING: Please look at camera...")
 
     def update_frame(self):
+        """
+        Main application loop called continuously by the QTimer.
+        Fetches a camera frame, detects faces, and either registers a new user's 
+        face encodings or attempts to match and log attendance for existing users.
+        It also checks for liveness via blink detection.
+        """
         frame = self.camera.get_downsampled_frame()
         if frame is None:
             return
@@ -450,6 +513,9 @@ class SmartAttendanceApp:
             self.gui.admin_video_label.setPixmap(pixmap)
 
     def run(self):
+        """
+        Starts the PyQt6 application event loop and safely cleans up on exit.
+        """
         self.gui.show()
         exit_code = self.app.exec()
         self.camera.release()

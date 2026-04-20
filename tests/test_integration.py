@@ -17,6 +17,10 @@ sys.path.insert(
 
 
 class TestIntegrationPipeline(unittest.TestCase):
+    """
+    Integration tests validating the end-to-end functionality across 
+    multiple components: recognition engine, data manager, and database.
+    """
     @classmethod
     def setUpClass(cls):
         # Configure database for isolation

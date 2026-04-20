@@ -8,6 +8,10 @@ from PyQt6.QtCore import Qt
 
 
 class SmartAttendanceGUI(QMainWindow):
+    """
+    Main Graphical User Interface (GUI) class built with PyQt6.
+    Defines all visual elements, layouts, and pages (Landing, Attendance, Admin).
+    """
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Smart Attendance System")
@@ -47,7 +51,7 @@ class SmartAttendanceGUI(QMainWindow):
             QHeaderView::section {
                 background-color: #E9ECEF;
                 padding: 4px;
-                border: 1px solid #DEE2E6;
+                 SmartAttendanceGUI(QMainWindow)border: 1px solid #DEE2E6;
                 font-weight: bold;
                 color: #212529;
             }
@@ -78,6 +82,10 @@ class SmartAttendanceGUI(QMainWindow):
         self.stacked_widget.setCurrentIndex(0)
 
     def init_landing_page(self):
+        """
+        Initializes the Landing Page where users can choose to log in 
+        as an admin or go to the attendance tracking mode.
+        """
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -100,6 +108,10 @@ class SmartAttendanceGUI(QMainWindow):
         self.stacked_widget.addWidget(page)
 
     def init_attendance_page(self):
+        """
+        Initializes the Attendance Tracking page with a video feed area 
+        and an activity log panel for displaying real-time feedback.
+        """
         page = QWidget()
         layout = QHBoxLayout(page)
         
@@ -132,6 +144,10 @@ class SmartAttendanceGUI(QMainWindow):
         self.stacked_widget.addWidget(page)
 
     def init_admin_dashboard(self):
+        """
+        Initializes the Admin Dashboard with registration forms, analytics 
+        data tables, filtering controls, and the admin video feed.
+        """
         page = QWidget()
         layout = QHBoxLayout(page)
         

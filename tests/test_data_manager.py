@@ -15,6 +15,10 @@ sys.path.insert(
 
 
 class TestDataManager(unittest.TestCase):
+    """
+    Unit tests for the DataManager handling database operations.
+    Uses a temporary SQLite database for isolated testing.
+    """
 
     @classmethod
     def setUpClass(cls):
@@ -47,6 +51,10 @@ class TestDataManager(unittest.TestCase):
         self.dm.db_manager.close_connection(conn)
 
     def test_insert_and_retrieve_user(self):
+        """
+        Test inserting a user with a generated encoding and verifying it 
+        can be retrieved back from the database identically.
+        """
         # Generate dummy data
         user_id = "USER123"
         name = "Test User"
@@ -75,6 +83,10 @@ class TestDataManager(unittest.TestCase):
         self.assertEqual(users[0]["name"], name)
 
     def test_log_attendance(self):
+        """
+        Test logging attendance for an existing user and verifying 
+        the record was properly stored in the Attendance_Logs table.
+        """
         # Setup dummy user first due to Foreign Key dependence
         user_id = "USER456"
         self.dm.insert_user(

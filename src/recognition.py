@@ -5,6 +5,10 @@ import face_recognition
 
 
 class RecognitionEngine:
+    """
+    Core engine for facial recognition tasks including face detection,
+    encoding generation, identity matching, and liveness (blink) detection.
+    """
 
     def __init__(self):
         # Dlib HOG algorithm for face detection
@@ -13,6 +17,10 @@ class RecognitionEngine:
         self.frame_count = 0
 
     def detect_face(self, frame):
+        """
+        Detects faces in a given frame using Dlib's HOG face detector.
+        Returns a list of bounding boxes (x, y, w, h) for each detected face.
+        """
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         faces = self.face_detector(gray, 1)
@@ -28,6 +36,10 @@ class RecognitionEngine:
         return bboxes
 
     def generate_encoding(self, frame):
+        """
+        Extracts the 128-dimensional facial encoding from the frame 
+        using the face_recognition library.
+        """
         # Convert OpenCV BGR format to RGB for face_recognition
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
@@ -43,6 +55,11 @@ class RecognitionEngine:
         return None
 
     def compare_encoding(self, enc1, enc2):
+        """
+        Compares two facial encodings using Euclidean distance.
+        Returns the distance and a boolean indicating if it's a match 
+        based on a strict threshold.
+        """
         distance = np.linalg.norm(enc1 - enc2)
         
         # Enforcing matching threshold
@@ -50,6 +67,10 @@ class RecognitionEngine:
         return distance, is_match
 
     def check_stability(self, current_user):
+        """
+        Checks if the same user has been detected consecutively for 
+        a set number of frames to ensure stability before logging attendance.
+        """
         if self.last_user == current_user:
             self.frame_count += 1
         else:
@@ -63,6 +84,10 @@ class RecognitionEngine:
         return False
 
     def calculate_ear(self, eye):
+        """
+        Calculates the Eye Aspect Ratio (EAR) given eye landmarks.
+        Used to detect if the eye is open or closed.
+        """
         import math
         # Calculate Euclidean distances between vertical eye landmarks
         a = math.dist(eye[1], eye[5])
@@ -77,6 +102,10 @@ class RecognitionEngine:
         return ear
 
     def detect_blink(self, frame):
+        """
+        Analyzes facial landmarks to detect a blink event.
+        A blink is considered a liveness check to prevent spoofing with photos.
+        """
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         landmarks_list = face_recognition.face_landmarks(rgb_frame)
         

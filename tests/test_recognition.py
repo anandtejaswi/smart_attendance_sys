@@ -14,11 +14,18 @@ sys.path.insert(
 
 
 class TestRecognitionEngine(unittest.TestCase):
+    """
+    Unit tests for the RecognitionEngine, ensuring encoding comparisons 
+    and stability checks work correctly.
+    """
 
     def setUp(self):
         self.engine = RecognitionEngine()
 
     def test_compare_encoding_match(self):
+        """
+        Test that identical encodings produce a distance of 0.0 and count as a match.
+        """
         # Two identical encodings should have distance 0.0 (match)
         enc1 = np.array([0.1] * 128)
         enc2 = np.array([0.1] * 128)
@@ -29,6 +36,10 @@ class TestRecognitionEngine(unittest.TestCase):
         self.assertTrue(is_match)
 
     def test_compare_encoding_mismatch(self):
+        """
+        Test that distinct encodings produce a distance above the threshold 
+        and do not count as a match.
+        """
         # Two very different encodings should have distance > 0.6
         enc1 = np.array([0.1] * 128)
         enc2 = np.array([0.9] * 128)
@@ -39,6 +50,10 @@ class TestRecognitionEngine(unittest.TestCase):
         self.assertFalse(is_match)
 
     def test_check_stability(self):
+        """
+        Test the frame stability counter, ensuring it only returns True 
+        after seeing the same user for 3 consecutive frames.
+        """
         # First frame
         self.assertFalse(self.engine.check_stability("user1"))
         self.assertEqual(self.engine.last_user, "user1")

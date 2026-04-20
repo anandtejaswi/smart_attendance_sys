@@ -4,6 +4,10 @@ import time
 
 
 class VideoCapture:
+    """
+    Handles capturing video from a camera source asynchronously in a background thread.
+    This prevents the main GUI thread from freezing while waiting for frames.
+    """
     def __init__(self, source=0):
         # Initialize the camera feed
         self.cap = cv2.VideoCapture(source)
@@ -19,7 +23,10 @@ class VideoCapture:
         self.thread.start()
 
     def _update(self):
-        """Background thread logic to constantly grab frames."""
+        """
+        Background thread logic to constantly grab frames from the camera.
+        Runs in a loop until the camera is released.
+        """
         while self.running:
             ret, frame = self.cap.read()
             if ret:
@@ -28,11 +35,16 @@ class VideoCapture:
             time.sleep(0.01)
 
     def get_frame(self):
-        """Returns the raw, original frame."""
+        """
+        Returns the most recently captured raw, original frame.
+        """
         return self.frame
 
     def get_downsampled_frame(self):
-        """Commit 9: Returns frame at 25% of original resolution."""
+        """
+        Commit 9: Returns frame at 25% of original resolution.
+        Used to reduce processing time for facial recognition.
+        """
         if self.frame is not None:
             # Resize by 50% in width and 50% in height (0.5 * 0.5 = 0.25 area)
             downsampled = cv2.resize(self.frame, (0, 0), fx=0.5, fy=0.5)
@@ -40,7 +52,9 @@ class VideoCapture:
         return None
 
     def release(self):
-        """Safely close the camera and stop the thread."""
+        """
+        Safely close the camera resource and gracefully stop the background thread.
+        """
         self.running = False
         self.thread.join()
         self.cap.release()

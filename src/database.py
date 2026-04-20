@@ -121,6 +121,11 @@ class DBConnectionManager:
                 self.close_connection(conn)
 
     def authenticate_user(self, user_id, input_password_hash):
+        """
+        Authenticates an admin user against the database.
+        Verifies if the provided password hash matches the stored password hash 
+        for the given user ID.
+        """
         conn = self.get_connection()
         cursor = conn.cursor()
 
