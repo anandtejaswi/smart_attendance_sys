@@ -22,6 +22,10 @@ class RecognitionEngine:
         Returns a list of bounding boxes (x, y, w, h) for each detected face.
         """
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+""" 
+converts to grayscale for faster processing 
+dlib’s HOG-based detector to find face locations
+"""
 
         faces = self.face_detector(gray, 1)
 
@@ -64,6 +68,9 @@ class RecognitionEngine:
         
         # Enforcing matching threshold
         is_match = distance <= 0.55
+        """ 
+        for strict matching to decide if 2 faces match
+        """
         return distance, is_match
 
     def check_stability(self, current_user):
@@ -85,11 +92,11 @@ class RecognitionEngine:
 
     def calculate_ear(self, eye):
         """
-        Calculates the Eye Aspect Ratio (EAR) given eye landmarks.
+        Calculates the Eye Aspect Ratio (EAR)used to detect blinking given eye landmarks.
         Used to detect if the eye is open or closed.
         """
         import math
-        # Calculate Euclidean distances between vertical eye landmarks
+        # Calculate Euclidean distances (to measure similarity between faces) between vertical eye landmarks
         a = math.dist(eye[1], eye[5])
         b = math.dist(eye[2], eye[4])
         # Calculate Euclidean distance between horizontal eye landmarks
@@ -122,4 +129,7 @@ class RecognitionEngine:
                 # A blink traditionally triggers below 0.22 depending on angle
                 if avg_ear < 0.22:
                     return True
+                    """
+                    means blink detected
+                    """
         return False
